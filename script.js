@@ -123,7 +123,6 @@ function spawnNew() {
 	state = Math.floor(Math.random()*currentBrickNumberOfStates)+1;
 	color = Figures[currentBrick].color;
 	bricks = Object.keys(Figures[currentBrick][state]).length;
-	alert(bricks);
 }
 
 function freeze() {
