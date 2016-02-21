@@ -9,7 +9,7 @@ var pX=0;
 var pY=0;
 
 var spawnX = 7;
-var spawnY = 1;
+var spawnY = 2;
 
 var GridArray = [];
 var positionX;
@@ -18,10 +18,13 @@ var positionY;
 var currentBrick = 1;
 var currentBrickNumberOfStates = 2;
 var state = 1;
+var color;
+var bricks;
 
 document.addEventListener('keydown', keyPressed);
 
 //Start game
+spawnNew();
 var game = setInterval(gameTick,700);
 
 // Main function
@@ -35,6 +38,43 @@ function gameTick() {
 	updateFigure();
 	drawArray();
 }
+
+//Work with array - start
+	//Create array
+	for (var c=0; c<FIELD_C; c++) {
+		GridArray[c] = [];
+		for (var r=0; r<FIELD_R; r++) {
+			GridArray[c][r]={x:0,y:0,valuez:0,colorVal:"black"};
+		}
+	}
+
+
+	//Fill array
+	for (var c=0; c<FIELD_C; c++) {
+		for (var r=0; r<FIELD_R; r++) {
+			positionX = c*BlockSize;
+			positionY = r*BlockSize;
+			GridArray[c][r].x = positionX;
+			GridArray[c][r].y = positionY;
+		}
+	}
+
+	for (var c=0; c<FIELD_C; c++) {
+		for (var r=FIELD_R-3; r<FIELD_R; r++) {
+			GridArray[c][r].valuez = 3;
+		}
+	}
+	for (var c=FIELD_C-3; c<FIELD_C; c++) {
+		for (var r=0; r<FIELD_R; r++) {
+			GridArray[c][r].valuez = 3;
+		}
+	}
+	for (var c=0; c<3; c++) {
+		for (var r=0; r<FIELD_R; r++) {
+			GridArray[c][r].valuez = 3;
+		}
+	}
+// Work with array - finish
 
 function keyPressed (evt) {
 	if (evt.keyCode == 37) {
@@ -71,6 +111,34 @@ function keyPressed (evt) {
 		}
 	}
 	drawArray();	
+}
+
+function spawnNew() {
+	pX = 0;
+	pY = 0;
+
+	var toChoose = Figures.length;
+	currentBrick = Math.floor(Math.random()*toChoose);
+	currentBrickNumberOfStates = Object.keys(Figures[currentBrick]).length -2;
+	state = Math.floor(Math.random()*currentBrickNumberOfStates)+1;
+	color = Figures[currentBrick].color;
+	bricks = Object.keys(Figures[currentBrick][state]).length;
+	alert(bricks);
+}
+
+function freeze() {
+	eval4(state,0,0,2);
+	colorTiles();
+	checkLine();
+	checkLose();
+}
+
+function canMove() { 
+	if ( check4(0,1,2) || check4(0,1,3) ) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
 function canRotate() {
@@ -120,10 +188,13 @@ function checkLine() {
 function deleteLine(l) {
 	for (var c=3; c<FIELD_C-3; c++) {
 		for (var m=l; m>=1; m--) {
-			GridArray[c][m].valuez = GridArray[c][m-1].valuez;					
+			GridArray[c][m].valuez = GridArray[c][m-1].valuez;
+			GridArray[c][m].colorVal = GridArray[c][m-1].colorVal;
+			colorRect(GridArray[c][m].x+1,GridArray[c][m].y+1, BlockSize-2,BlockSize-2,0,GridArray[c][m].colorVal);				
 		}
 		GridArray[c][0].valuez = 0;
 	}
+	
 }
 
 function checkLose() {
@@ -135,96 +206,33 @@ function checkLose() {
 	}
 }
 
-//Work with array - start
-	//Create array
-	for (var c=0; c<FIELD_C; c++) {
-		GridArray[c] = [];
-		for (var r=0; r<FIELD_R; r++) {
-			GridArray[c][r]={x:0,y:0,valuez:0};
-		}
-	}
-
-
-	//Fill array
-	for (var c=0; c<FIELD_C; c++) {
-		for (var r=0; r<FIELD_R; r++) {
-			positionX = c*BlockSize;
-			positionY = r*BlockSize;
-			GridArray[c][r].x = positionX;
-			GridArray[c][r].y = positionY;
-		}
-	}
-
-	for (var c=0; c<FIELD_C; c++) {
-		for (var r=FIELD_R-3; r<FIELD_R; r++) {
-			GridArray[c][r].valuez = 3;
-		}
-	}
-	for (var c=FIELD_C-3; c<FIELD_C; c++) {
-		for (var r=0; r<FIELD_R; r++) {
-			GridArray[c][r].valuez = 3;
-		}
-	}
-	for (var c=0; c<3; c++) {
-		for (var r=0; r<FIELD_R; r++) {
-			GridArray[c][r].valuez = 3;
-		}
-	}
-// Work with array - finish
-
 function updateFigure() {
 		eval4(state,0,-1,0);
 		eval4(state,0,0,1);
 }
 
-function freeze() {
-	eval4(state,0,0,2);
-	checkLine();
-	checkLose();
-}
-
-function canMove() {
-	 
-	if ( check4(0,1,2) || check4(0,1,3) ) {
-		return false;
-	} else {
-		return true;
-	}
-}
-
-function spawnNew() {
-	pX = 0;
-	pY = 0;
-
-	var toChoose = Figures.length;
-	currentBrick = Math.floor(Math.random()*toChoose);
-	currentBrickNumberOfStates = Object.keys(Figures[currentBrick]).length -1;
-	state = Math.floor(Math.random()*currentBrickNumberOfStates)+1;
-}
-
-
 // Misc functions
 
 function eval4(m,addSomeX,addSomeY,varToEval) {
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][m].block1.x][spawnY+pY+addSomeY+Figures[currentBrick][m].block1.y].valuez = varToEval;	
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][m].block2.x][spawnY+pY+addSomeY+Figures[currentBrick][m].block2.y].valuez = varToEval;
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][m].block3.x][spawnY+pY+addSomeY+Figures[currentBrick][m].block3.y].valuez = varToEval;
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][m].block4.x][spawnY+pY+addSomeY+Figures[currentBrick][m].block4.y].valuez = varToEval;
-}
-
-function check4(addSomeX,addSomeY,varToCheck) {
-	if (
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][state].block1.x][spawnY+pY+addSomeY+Figures[currentBrick][state].block1.y].valuez == varToCheck ||	
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][state].block2.x][spawnY+pY+addSomeY+Figures[currentBrick][state].block2.y].valuez == varToCheck ||
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][state].block3.x][spawnY+pY+addSomeY+Figures[currentBrick][state].block3.y].valuez == varToCheck ||
-		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][state].block4.x][spawnY+pY+addSomeY+Figures[currentBrick][state].block4.y].valuez == varToCheck
-		) {
-		return true;
-	} else {
-		return false;
+	for (var i=1; i<=bricks; i++) {
+		GridArray[spawnX+pX+addSomeX+Figures[currentBrick][m][i].x][spawnY+pY+addSomeY+Figures[currentBrick][m][i].y].valuez = varToEval;	
 	}
 }
 
+function check4(addSomeX,addSomeY,varToCheck) {
+	for (var i=1; i<=bricks; i++) {
+		if (GridArray[spawnX+pX+addSomeX+Figures[currentBrick][state][i].x][spawnY+pY+addSomeY+Figures[currentBrick][state][i].y].valuez == varToCheck) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function colorTiles() {
+	for (var i=1; i<=bricks; i++) {
+		GridArray[spawnX+pX+Figures[currentBrick][state][i].x][spawnY+pY+Figures[currentBrick][state][i].y].colorVal = color;
+	}	
+}
 function drawHoodStatic() {
 	for (var c=0; c<FIELD_C; c++) {
 		for (var r=0; r<3; r++) {
@@ -251,12 +259,8 @@ function drawArray() {
 			if (GridArray[c][r].valuez == 0) {
 				colorRect(GridArray[c][r].x,GridArray[c][r].y, BlockSize,BlockSize,0,"black");
 			} else if (GridArray[c][r].valuez == 1) {
-				colorRect(GridArray[c][r].x+1,GridArray[c][r].y+1, BlockSize-2,BlockSize-2,0,"white");
-			} else if (GridArray[c][r].valuez == 2) {
-				colorRect(GridArray[c][r].x+1,GridArray[c][r].y+1, BlockSize-2,BlockSize-2,0,"blue");
-			}/* else if (GridArray[c][r].valuez == 3) {
-				colorRect(GridArray[c][r].x,GridArray[c][r].y, BlockSize,BlockSize,0,"red");
-			}*/
+				colorRect(GridArray[c][r].x+1,GridArray[c][r].y+1, BlockSize-2,BlockSize-2,0,color);
+			}
 		}
 	}
 }
